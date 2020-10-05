@@ -9,6 +9,8 @@
 #include "vector.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include "../_share/util.h"
+#include "../UniPrint/print.h"
 
 int testID = 0; //≤‚ ‘±‡∫≈
 

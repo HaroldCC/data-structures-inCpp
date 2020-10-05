@@ -256,6 +256,41 @@ int Vector<T>::find(const T &element, int low, int high) const
 }
 
 template <typename T>
+int Vector<T>::search(const T &element, int low, int high) const
+{
+    // %50概率随机使用二分查找或斐波那契查找
+    return (rand() % 2) ? binSearch(_element, element, low, high)
+                        : fibSearch(_element, element, low, high);
+}
+
+template <typename T>
+static int binSearch(T *vec, const T &element, int low, int high)
+{
+    while (low < high)
+    {
+        int mid = (low + high) >> 1; // 以中点为轴
+        (element < vec[mid]) ? high = mid : low = mid + 1;
+    }
+
+    return --low;
+}
+
+#include "../fibonacci/Fib.h"
+template <typename T>
+static int fibSearch(T *vec, const T &element, int low, int high)
+{
+    for (Fib fib(high - low); low < high;)
+    {
+        while (high - low < fib.get())
+            fib.prev();
+        int mid = low + fib.get() - 1;
+        (element < vec[mid]) ? high = mid : low = mid + 1;
+
+        return --low;
+    }
+}
+
+template <typename T>
 const T &Vector<T>::operator[](int index) const
 {
     return _element[index];
@@ -306,6 +341,54 @@ void Vector<T>::shrink()
 }
 
 template <typename T>
+bool Vector<T>::bubble(int low, int high)
+{
+    bool sorted = true;  // 有序标志
+    while (++low < high) // 自左向右，逐一检查各相邻元素
+    {
+        if (_element[low - 1] > _element[low]) // 若逆序
+        {
+            sorted = false;
+            swap(_element[low - 1], _element[low]);
+        }
+    }
+    return sorted;
+}
+
+template <typename T>
+void Vector<T>::bubble_sort(int low, int high)
+{
+    while (!bubble(low, high--))
+        ;
+}
+
+template <typename T>
+void Vector<T>::merge(int low, int mid, int high)
+{
+    T *A = _element + low;
+    int lb = mid - low; // 左半部分长度
+    T *B = new T[lb];
+    for (int i = 0; i < lb; ++i)
+        B[i] = A[i];     // 备份左半部分的数据内容
+    int lc = high - mid; // 右半部分长度
+    T *C = _element + mid;
+    for (int i = 0, j = 0, k = 0; i < lb;)
+        A[i++] = (lc <= k || B[j] <= C[k]) ? B[j++] : C[k++];
+    delete[] B;
+}
+
+template <typename T>
+void Vector<T>::merge_sort(int low, int high)
+{
+    if (high - low < 2)
+        return;                  //单元素区间自然有序
+    int mid = (low + high) >> 1; // 以中点为界
+    merge_sort(low, mid);        // 对前半段排序
+    merge_sort(mid, high);       // 对后半段排序
+    merge(low, mid, high);       // 合并
+}
+
+template <typename T>
 Vector<T> &Vector<T>::operator=(const Vector<T> &vec)
 {
     if (_element)
@@ -348,6 +431,30 @@ int Vector<T>::insert(int index, const T &element)
 }
 
 template <typename T>
+void Vector<T>::sort(int low, int high)
+{
+    switch (rand() % 5) // 随机选取排序算法
+    {
+    case 1:
+        bubble_sort(low high);
+        break;
+    case 2:
+        selection_sort(low, high);
+        break;
+    case 3:
+        merge_sort(low, high);
+        break;
+    case 4:
+        heap_sort(low, high);
+        break;
+
+    default:
+        quick_sort(low, high);
+        break;
+    }
+}
+
+template <typename T>
 void Vector<T>::unsort(int low, int high)
 {
     T *vec = _element + low; // 将子向量_element[low, high]视作另一向量vec[0, high-low]
@@ -363,6 +470,18 @@ int Vector<T>::deduplicate()
     while (i < _size)
         (find(_element[i], 0, i) < 0) ? i++ : remove(i);
     return oldSize - _size;
+}
+
+template <typename T>
+int Vector<T>::uniquify()
+{
+    int i = 0, j = 0;                    // 相邻元素的索引
+    while (++j < _size)                  // 从第二个元素开始，确保比较范围在合理范围内
+        if (_element[i] != _element[j])  // 跳过相同的元素
+            _element[++i] = _element[j]; // 当元素不同时，前移至第一个元素右侧
+    _size = ++i;
+    shrink();
+    return j - i; // 返回被删除元素总数
 }
 
 template <typename T>

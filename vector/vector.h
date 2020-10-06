@@ -11,9 +11,13 @@
 
 #define DEFAULT_CAPACITY 3
 
+#include <iostream>
+
 template <typename T>
 class Vector
 {
+    friend std::ostream &operator<<(std::ostream &out, const Vector<T> &v);
+
 private:
     int _size;     // 元素的个数
     int _capacity; // 数组的容量
@@ -236,6 +240,17 @@ public:
 };
 
 template <typename T>
+std::ostream &operator<<(std::ostream &out, const Vector<T> &v)
+{
+    {
+        for (int i = 0; i < v.size(); ++i)
+            out << v._element[i] << " ";
+
+        return out;
+    }
+}
+
+template <typename T>
 void Vector<T>::copy_from(const T *vec, int low, int high)
 {
     _element = new T[_capacity = 2 * (high - low)];
@@ -349,7 +364,7 @@ bool Vector<T>::bubble(int low, int high)
         if (_element[low - 1] > _element[low]) // 若逆序
         {
             sorted = false;
-            swap(_element[low - 1], _element[low]);
+            std::swap(_element[low - 1], _element[low]);
         }
     }
     return sorted;
@@ -436,7 +451,7 @@ void Vector<T>::sort(int low, int high)
     switch (rand() % 5) // 随机选取排序算法
     {
     case 1:
-        bubble_sort(low high);
+        bubble_sort(low, high);
         break;
     case 2:
         selection_sort(low, high);
@@ -459,7 +474,7 @@ void Vector<T>::unsort(int low, int high)
 {
     T *vec = _element + low; // 将子向量_element[low, high]视作另一向量vec[0, high-low]
     for (int i = high - low; i > 0; --i)
-        swap(vec[i - 1], vec[rand() % i]); // 自后向前，将vec[i-1]与vec[0, i]中某一元素随即交换
+        std::swap(vec[i - 1], vec[rand() % i]); // 自后向前，将vec[i-1]与vec[0, i]中某一元素随即交换
 }
 
 template <typename T>
